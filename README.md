@@ -70,7 +70,7 @@ From basic to high level math in a go!
 
 ###  Advanced Retrieval Pipeline
 
-```text
+```bash
 User Query
     │
     ▼
