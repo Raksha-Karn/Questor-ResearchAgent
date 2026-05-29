@@ -209,19 +209,26 @@ def create_pdf_tools(session_id: str):
         Return metadata about
         uploaded documents.
         """
-        session_docs = (
-            DOCUMENT_METADATA.get(session_id)
-        )
-
-        if not session_docs:
+        vectorstore = get_vectorstore(session_id)
+        if vectorstore is None:
             return "No documents indexed."
 
+        data = vectorstore.get()
+        metadatas = data["metadatas"]
+        documents = {}
+        for meta in metadatas:
+            source = meta.get("source", "Unknown")
+            page = meta.get("page", 0)
+            documents.setdefault(source, 0)
+
+            documents[source] = max(documents[source], page + 1)
+
         output = []
-        for (doc_name, metadata) in session_docs.items():
+        for (doc_name, pages) in documents.items():
             output.append(
                 f"""
                 Document: {doc_name}
-                Pages: {metadata['pages']}
+                Pages: {pages}
                 """
             )
 
