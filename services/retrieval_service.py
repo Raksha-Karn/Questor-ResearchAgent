@@ -25,3 +25,18 @@ def build_hybrid_retriever(
         ],
         weights=[0.4, 0.6],
     )
+
+def expand_query(
+    llm,
+    query: str,
+) -> str:
+
+    prompt = f"""
+            Expand the following query into related
+            search terms and concepts.
+
+            Query:
+            {query}
+        """
+
+    return llm.invoke(prompt).content
