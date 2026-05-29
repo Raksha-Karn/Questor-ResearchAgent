@@ -12,6 +12,7 @@ from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from services.retrieval_service import build_hybrid_retriever
 from services.summary_service import SummaryService
+from services.rerank_service import rerank_documents
 
 logger = logging.getLogger(__name__)
 
@@ -32,9 +33,8 @@ DOCUMENT_METADATA: Dict[
     Dict,
 ] = {}
 
-summary_service: Optional[
-    SummaryService
-] = None
+summary_service: Optional[SummaryService] = None
+rerank_llm = None
 
 
 class PDFLoadError(Exception):
@@ -174,6 +174,12 @@ def create_pdf_tools(session_id: str):
 
         retriever = build_hybrid_retriever(documents, vectorstore)
         docs = retriever.invoke(query)
+        docs = rerank_documents(
+            rerank_llm,
+            query,
+            docs,
+            top_k=5,
+        )
         if not docs:
             return "No relevant content found."
 
@@ -249,3 +255,7 @@ def create_pdf_tools(session_id: str):
         summarize_document,
         document_metadata,
     ]
+
+def initialize_reranker(llm):
+    global rerank_llm
+    rerank_llm = llm
