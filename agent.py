@@ -125,11 +125,26 @@ def run_agent(
                 }
             )
 
+        output = result.get("output", "")
+        if isinstance(output, str):
+            answer = output
+
+        elif isinstance(output, list):
+            text_parts = []
+            for item in output:
+                if isinstance(item, dict):
+                    if "text" in item:
+                        text_parts.append(item["text"])
+                    else:
+                        text_parts.append(str(item))
+                else:
+                    text_parts.append(str(item))
+            answer = "\n".join(text_parts)
+        else:
+            answer = str(output)
+
         return {
-            "answer": result.get(
-                "output",
-                "No response generated.",
-            ),
+            "answer": answer,
             "steps": steps,
         }
 
