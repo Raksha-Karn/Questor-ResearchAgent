@@ -74,13 +74,12 @@ def run_agent(
     history: list,
 ) -> dict:
     chat_history = []
-
     for msg in history:
         role = msg.get("role")
-        content = msg.get(
-            "content",
-            "",
-        )
+        content = msg.get("content", "")
+
+        if not content:
+            continue
 
         if role == "user":
             chat_history.append(
@@ -95,27 +94,55 @@ def run_agent(
                     content=content
                 )
             )
-
-    result = executor.invoke(
-        {
-            "input": question,
-            "chat_history": chat_history,
-        }
-    )
-
-    steps = []
-    for (action, observation) in result.get("intermediate_steps", []):
-        steps.append(
+    try:
+        result = executor.invoke(
             {
-                "tool": action.tool,
-                "input": action.tool_input,
-                "output": str(
-                    observation
-                )[:500],
+                "input": question,
+                "chat_history": chat_history,
             }
         )
 
-    return {
-        "answer": result["output"],
-        "steps": steps,
-    }
+        steps = []
+        for (action, observation) in result.get("intermediate_steps", []):
+            steps.append(
+                {
+                    "tool": getattr(
+                        action,
+                        "tool",
+                        "unknown",
+                    ),
+                    "input": str(
+                        getattr(
+                            action,
+                            "tool_input",
+                            "",
+                        )
+                    ),
+                    "output": str(
+                        observation
+                    )[:500],
+                }
+            )
+
+        return {
+            "answer": result.get(
+                "output",
+                "No response generated.",
+            ),
+            "steps": steps,
+        }
+
+    except Exception as e:
+        return {
+            "answer": (
+                "An error occurred while "
+                "processing your request."
+            ),
+            "steps": [
+                {
+                    "tool": "error",
+                    "input": question,
+                    "output": str(e),
+                }
+            ],
+        }
