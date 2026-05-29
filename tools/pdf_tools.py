@@ -96,7 +96,7 @@ def build_vectorstore(
         delete=False,
         suffix=".pdf",
     ) as tmp:
-        tmp.writeuploaded_file.read()
+        tmp.write(uploaded_file.read())
         pdf_path = tmp.name
 
     try:
