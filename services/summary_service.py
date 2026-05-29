@@ -48,7 +48,6 @@ class SummaryService:
         docs: List[Document],
         summary_type: str = "executive",
     ) -> str:
-
         if not docs:
             return "No documents available."
 
@@ -88,8 +87,15 @@ class SummaryService:
         Context:
         {context}
         """
-        response = self.llm.invoke(
-            prompt
-        )
+        response = self.llm.invoke(prompt)
+        content = response.content
+        if isinstance(content, str):
+            return content
+        if isinstance(content, list):
+            text_parts = []
+            for item in content:
+                if (isinstance(item, dict) and item.get("type") == "text"):
+                    text_parts.append(item.get("text", ""))
 
-        return response.content
+            return "\n".join(text_parts)
+        return str(content)
