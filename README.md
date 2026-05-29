@@ -68,30 +68,42 @@ From basic to high level math in a go!
 
 
 
-###  Advanced Retrieval Pipeline
+### Advanced Retrieval Pipeline
 
-```bash
-User Query
-    │
-    ▼
-Query Understanding
-    │
-    ▼
-Hybrid Retrieval
-(BM25 + Chroma)
-    │
-    ▼
-Gemini Re-ranking
-    │
-    ▼
-Context Assembly
-    │
-    ▼
-Final Answer
+```text
+                    ┌─────────────────────────┐
+                    │       User Query        │
+                    └────────────┬────────────┘
+                                 │
+                                 ▼
+                    ┌─────────────────────────┐
+                    │  Query Understanding    │
+                    │  History-Aware Context  │
+                    └────────────┬────────────┘
+                                 │
+                                 ▼
+                    ┌─────────────────────────┐
+                    │    Hybrid Retrieval     │
+                    │    BM25 + Chroma DB     │
+                    └────────────┬────────────┘
+                                 │
+                                 ▼
+                    ┌─────────────────────────┐
+                    │    Gemini Re-ranking    │
+                    │  Semantic Relevance     │
+                    └────────────┬────────────┘
+                                 │
+                                 ▼
+                    ┌─────────────────────────┐
+                    │    Context Assembly     │
+                    │   Top-K Chunk Fusion    │
+                    └────────────┬────────────┘
+                                 │
+                                 ▼
+                    ┌─────────────────────────┐
+                    │      Final Answer       │
+                    └─────────────────────────┘
 ```
-
----
-
 ## Tech Stack
 
 | Component | Technology |
