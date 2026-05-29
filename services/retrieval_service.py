@@ -32,11 +32,11 @@ def expand_query(
 ) -> str:
 
     prompt = f"""
-            Expand the following query into related
-            search terms and concepts.
+            Expand the following query into related keywords, concepts, and alternate phrasings.
 
             Query:
             {query}
         """
+    response = llm.invoke(prompt)
 
-    return llm.invoke(prompt).content
+    return response.content.strip()
