@@ -5,7 +5,7 @@ from langchain_core.messages import AIMessage, HumanMessage
 from langchain_google_genai import ChatGoogleGenerativeAI
 from tools.calculator_tool import calculator
 from tools.web_search_tool import web_search_tool
-from tools.pdf_tools import create_pdf_tools, initialize_summary_service
+from tools.pdf_tools import create_pdf_tools, initialize_summary_service, initialize_reranker
 
 load_dotenv()
 
@@ -35,6 +35,7 @@ def build_agent(session_id: str) -> AgentExecutor:
         temperature=0,
     )
     initialize_summary_service(llm)
+    initialize_reranker(llm)
     pdf_tools = create_pdf_tools(session_id)
     tools = (pdf_tools + 
         [
