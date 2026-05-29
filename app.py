@@ -11,6 +11,23 @@ load_dotenv()
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
+def extract_text(content):
+    if isinstance(content, str):
+        return content
+
+    if isinstance(content, list):
+        text_parts = []
+        for item in content:
+            if isinstance(item, dict):
+                if "text" in item:
+                    text_parts.append(item["text"])
+                else:
+                    text_parts.append(str(item))
+            else:
+                text_parts.append(str(item))
+        return "\n".join(text_parts)
+    return str(content)
+
 st.set_page_config(
     page_title="Research Agent",
     page_icon="🔍",
@@ -29,7 +46,7 @@ st.markdown(
 }
 
 [data-testid="stSidebar"] {
-    background-color: #fafafa;
+    background-color: #2b2727;
 }
 
 .stButton > button {
@@ -84,25 +101,32 @@ with st.sidebar:
 
     uploaded_file = st.file_uploader("Upload PDF", type=["pdf"])
     if uploaded_file:
-        st.info(f"{uploaded_file.name}")
-        if st.button("Process PDF", type="primary"):
+        current_hash = generate_file_hash(uploaded_file)
+
+        already_processed = (st.session_state.get("processed_hash") == current_hash)
+        if not already_processed:
             try:
-                with st.spinner("Embedding PDF.."):
+                with st.spinner("Processing PDF..."):
                     build_vectorstore(
                         uploaded_file=uploaded_file,
                         api_key=GEMINI_API_KEY,
-                        file_hash=generate_file_hash(uploaded_file),
+                        file_hash=current_hash,
                         source_name=uploaded_file.name,
                         session_id=st.session_state.session_id,
                     )
 
-                st.success("PDF indexed successfully!")
+                st.session_state["processed_hash"] = current_hash
                 st.session_state["pdf_name"] = uploaded_file.name
-                if "pdf_name" in st.session_state:
-                    st.success(f"Active PDF: {st.session_state['pdf_name']}")
+                st.success("PDF indexed successfully!")
 
             except Exception as e:
                 st.error(str(e))
+
+        if "pdf_name" in st.session_state:
+            st.info(
+                f"Active PDF: "
+                f"{st.session_state['pdf_name']}"
+            )
 
     st.divider()
     st.subheader("Quick Actions")
@@ -129,6 +153,8 @@ if summary_btn:
         pdf_tools = create_pdf_tools(st.session_state.session_id)
         summary_tool = pdf_tools[1]
         result = summary_tool.invoke({"summary_type": "executive"})
+        result = extract_text(result)
+
         st.session_state.messages.append(
             {
                 "role": "assistant",
@@ -146,6 +172,7 @@ if research_btn:
         pdf_tools = create_pdf_tools(st.session_state.session_id)
         summary_tool = pdf_tools[1]
         result = summary_tool.invoke({"summary_type": "research"})
+        result = extract_text(result)
 
         st.session_state.messages.append(
             {
@@ -164,6 +191,7 @@ if metadata_btn:
         pdf_tools = create_pdf_tools(st.session_state.session_id)
         metadata_tool = pdf_tools[2]
         result = metadata_tool.invoke({})
+        result = extract_text(result)
 
         st.session_state.messages.append(
             {
