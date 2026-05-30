@@ -11,3 +11,4 @@ wheels/
 .env
 chat_history
 chroma_db
+.devcontainer
