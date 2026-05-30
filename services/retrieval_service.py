@@ -2,6 +2,25 @@ from langchain_community.retrievers import BM25Retriever
 from langchain_core.documents import Document
 from langchain_classic.retrievers.ensemble import EnsembleRetriever
 
+def get_text_content(response):
+    content = response.content
+
+    if isinstance(content, str):
+        return content
+
+    if isinstance(content, list):
+        parts = []
+
+        for item in content:
+            if isinstance(item, dict):
+                parts.append(item.get("text", str(item)))
+            else:
+                parts.append(str(item))
+
+        return "\n".join(parts)
+
+    return str(content)
+
 def build_hybrid_retriever(
     docs: list[Document],
     vectorstore,
@@ -39,4 +58,4 @@ def expand_query(
         """
     response = llm.invoke(prompt)
 
-    return response.content.strip()
+    return get_text_content(response).strip()

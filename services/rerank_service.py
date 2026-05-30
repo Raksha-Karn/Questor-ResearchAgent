@@ -1,5 +1,24 @@
 import re
 
+def get_text_content(response):
+    content = response.content
+
+    if isinstance(content, str):
+        return content
+
+    if isinstance(content, list):
+        parts = []
+
+        for item in content:
+            if isinstance(item, dict):
+                parts.append(item.get("text", str(item)))
+            else:
+                parts.append(str(item))
+
+        return "\n".join(parts)
+
+    return str(content)
+
 def rerank_documents(
     llm,
     query: str,
@@ -19,7 +38,7 @@ def rerank_documents(
             """
         )
 
-        score_text = response.content.strip()
+        score_text = get_text_content(response).strip()
         match = re.search(
             r"\d+",
             score_text,
